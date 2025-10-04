@@ -1,0 +1,21 @@
+{
+  "name": "summarizer-api",
+  "version": "1.0.0",
+  "description": "Microservice for Document Summarization using Gemini API.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["gemini", "node", "upsc", "summarizer"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@google/genai": "^0.15.0",
+    "axios": "^1.7.2",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "pdf-parse": "^1.1.1"
+  }
+}
+
