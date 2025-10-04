@@ -2,9 +2,9 @@
   "name": "summarizer-api",
   "version": "1.0.0",
   "description": "Microservice for Document Summarization using Gemini API.",
-  "main": "server.js",
+  "main": "server.cjs", 
   "scripts": {
-    "start": "node server.js",
+    "start": "node server.cjs", 
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": ["gemini", "node", "upsc", "summarizer"],
@@ -18,4 +18,5 @@
     "pdf-parse": "^1.1.1"
   }
 }
+
 

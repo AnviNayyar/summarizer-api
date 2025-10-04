@@ -1,22 +1,32 @@
-// Path: SUMMARIZER-API/server.js
+// Path: SUMMARIZER-API/server.cjs
 // This Microservice securely handles PDF downloading, text extraction, and Gemini API calls.
 
 const express = require('express');
 const axios = require('axios');
 const pdfParser = require('pdf-parse');
-const { GoogleGenAI } = require('@google/genai');
+// Note: We use the CommonJS syntax (require) which is now supported 
+// because we are forcing this file to run as .cjs
+const { GoogleGenAI } = require('@google/genai'); 
 require('dotenv').config(); 
 
 const app = express();
-const PORT = process.env.PORT || 3001;
+
+// --- CRITICAL DEPLOYMENT FIXES ---
+// 1. Use environment variable PORT provided by Railway, default to 3001 locally.
+const PORT = process.env.PORT || 3001; 
+// 2. Set HOST to 0.0.0.0, required for Railway/Docker to expose the port correctly.
+const HOST = '0.0.0.0'; 
+// --- END CRITICAL FIXES ---
 
 // --- CONFIGURATION ---
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY; 
+// Ensure your Railway Variable is named GEMINI_API_KEY
 const ai = new GoogleGenAI({ apiKey: GEMINI_API_KEY }); 
 
 if (!GEMINI_API_KEY) {
-    console.error("FATAL: GEMINI_API_KEY is missing. Please check your .env file.");
-    process.exit(1);
+    console.error("FATAL: GEMINI_API_KEY is missing. Please check your environment variables.");
+    // In production, we exit to prevent starting without the key
+    process.exit(1); 
 }
 
 // Middleware to parse incoming JSON requests
@@ -24,7 +34,7 @@ app.use(express.json({ limit: '10mb' }));
 
 // CORS setup: Essential for your frontend to call this API
 app.use((req, res, next) => {
-    // Allows ANY origin to call this API
+    // Allows ANY origin to call this API (for hackathon/testing)
     res.header('Access-Control-Allow-Origin', '*'); 
     res.header('Access-Control-Allow-Headers', 'Content-Type');
     res.header('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -66,7 +76,6 @@ async function generateSummary(text, title) {
 
 
 // --- API ENDPOINT: POST /summarize ---
-// This is the endpoint the frontend will call: POST /summarize
 
 app.post('/summarize', async (req, res) => {
     const { url, title } = req.body;
@@ -75,10 +84,8 @@ app.post('/summarize', async (req, res) => {
         return res.status(400).json({ error: "Missing 'url' or 'title' in request body." });
     }
     
-    // NOTE: This is where database/cache logic would be implemented in a full version.
-
     try {
-        // 1. Download and Extract Text (This accesses the external UPSC PDF)
+        // 1. Download and Extract Text 
         const documentText = await extractTextFromPdf(url);
 
         // 2. Generate Summary using LLM
@@ -88,7 +95,8 @@ app.post('/summarize', async (req, res) => {
         res.status(200).json(summary);
 
     } catch (error) {
-        console.error("Microservice Error Processing:", error.message);
+        // Log the full error to Railway logs for debugging
+        console.error("Microservice Error Processing:", error); 
         res.status(500).json({ 
             error: "Failed to process document or generate summary.",
             details: error.message.includes('JSON') ? "AI structure error or malformed response." : "External PDF access failure."
@@ -98,7 +106,7 @@ app.post('/summarize', async (req, res) => {
 
 
 // --- Start Server ---
-app.listen(PORT, () => {
-    console.log(`Microservice running on port ${PORT}.`);
-    console.log(`Local Endpoint: http://localhost:${PORT}/summarize`);
+app.listen(PORT, HOST, () => {
+    // This is the message you should see in your Railway logs if successful
+    console.log(`Microservice running successfully on http://${HOST}:${PORT}`);
 });
